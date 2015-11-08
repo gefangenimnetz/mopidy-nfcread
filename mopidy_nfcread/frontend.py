@@ -19,11 +19,14 @@ class NFCread(pykka.ThreadingActor, core.CoreListener):
         self.tagReaderThread = None
 
     def ndef_read_callback(self, data):
-        self.core.playback.play()
+	self.core.tracklist.clear()
+	self.core.tracklist.add(None, None, data, None)
+	self.core.playback.play()
 
     def on_start(self):
         self.tagReader = ReadTag(self.devicepath, self.ndef_read_callback)
         self.tagReaderThreaded = threading.Thread(target=self.tagReader.start)
+	self.tagReader.daemon = True
         self.tagReaderThreaded.start()        
         logger.info(__logprefix__ + 'started')
 
