@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 import os
 import sys
+import time
 import inspect
 
 # realpath() will make your script run, even if you symlink it :)
@@ -29,6 +30,7 @@ class ReadTag():
 
     def start(self):
         while self.run_once() and self._running:
+	    time.sleep(1)
             logger.info(__logprefix__ + 'Watiting for NFC Tag')
 
     def stop(self):
@@ -36,7 +38,6 @@ class ReadTag():
         raise SystemExit        
 
     def __on_rdwr_connect(self, tag):
-        logger.info(__logprefix__ + '__on_rdwr_connect')
         if tag.ndef:
             record = tag.ndef.message[0]
             if record.type == "urn:nfc:wkt:T":
@@ -49,11 +50,13 @@ class ReadTag():
         return True
 
     def run_once(self):
+	if not self._running:
+	    return false	
         try:
-            print nfc.ContaclessFrontend('tty:AMA0:pn532')            
             self.clf = nfc.ContactlessFrontend(self.devicepath)
             return self.clf.connect(rdwr={
                 'on-connect': self.__on_rdwr_connect
             })
         finally:
             self.clf.close()
+	    logger.info(__logprefix__ + 'Reader shut down')
